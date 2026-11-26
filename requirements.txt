@@ -1,0 +1,4 @@
+flask>=3.0
+music21>=9.1
+verovio>=4.3
+pytest>=8.0

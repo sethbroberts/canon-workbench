@@ -1,0 +1,74 @@
+:root {
+  --ink: #1f1d1a;
+  --quiet: #6b665e;
+  --line: #d9d4ca;
+  --paper: #fbfaf7;
+  --error: #b3261e;
+  --warn: #8a5a00;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+header { padding: 16px 24px 0; }
+h1 { margin: 0; font-size: 22px; }
+.sub { margin: 4px 0 0; color: var(--quiet); }
+
+main {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 24px;
+  padding: 16px 24px 32px;
+}
+
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; }
+}
+
+label { display: block; font-weight: 600; margin-bottom: 4px; }
+
+textarea {
+  width: 100%;
+  font: 15px/1.5 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  resize: vertical;
+}
+
+.hint { color: var(--quiet); font-size: 13px; margin: 6px 0 16px; line-height: 1.6; }
+code { background: #efece5; padding: 1px 4px; border-radius: 3px; }
+
+.settings { display: grid; gap: 10px; }
+.settings label { font-weight: 500; }
+.settings input, .settings select {
+  font: inherit;
+  padding: 3px 6px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: white;
+}
+.settings input[type="number"] { width: 4.5em; }
+
+#messages { margin-top: 16px; font-size: 14px; }
+#messages .error { color: var(--error); margin: 4px 0; }
+#messages .warning { color: var(--warn); margin: 4px 0; }
+
+.score {
+  background: white;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 300px;
+  overflow-x: auto;
+}
+#status { color: var(--quiet); font-size: 13px; margin-bottom: 8px; }
+#score svg { width: 100%; height: auto; display: block; }
+#score.stale { opacity: 0.45; }
