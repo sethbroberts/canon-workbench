@@ -50,9 +50,14 @@ in the browser, so a reload loses nothing. Ctrl+S (Cmd+S) saves.
 - **MusicXML** opens in MuseScore, Finale, Sibelius or Dorico; **MIDI** plays
   anywhere; **LilyPond** gives you the source to fine-tune the engraving.
 
-PDFs are engraved by [LilyPond](https://lilypond.org), which `pip install -r
-requirements.txt` installs as the `lilypond` Python package (a large download,
-about 100 MB). A LilyPond already on your PATH is used first if you have one.
+PDFs are engraved by [LilyPond](https://lilypond.org):
+- **Mac:** `brew install lilypond` (with [Homebrew](https://brew.sh)). There's no
+  pip package for macOS, so `requirements.txt` skips it there.
+- **Windows and Linux:** `pip install -r requirements.txt` installs it as the
+  `lilypond` Python package (about 100 MB).
+
+A LilyPond already on your PATH is used first if you have one. Restart the app
+after installing it.
 
 Run the tests with:
 

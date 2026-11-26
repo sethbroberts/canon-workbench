@@ -14,8 +14,8 @@ from pathlib import Path
 from flask import Flask, Response, abort, jsonify, render_template, request
 
 from music.canon import ENDINGS, INTERVAL_CHOICES, CanonSettings, build_canon
-from music.export import (LilyPondError, PieceInfo, lilypond_executable, lilypond_source, to_midi, to_pdf,
-                          with_metadata)
+from music.export import (LilyPondError, PieceInfo, install_hint, lilypond_executable, lilypond_source, to_midi,
+                          to_pdf, with_metadata)
 from music.lyrics import apply_words
 from music.parser import ParseError, check_barlines, parse_melody
 from music.playback import playback_data
@@ -63,6 +63,7 @@ def index():
         endings=ENDINGS,
         defaults=DEFAULTS,
         can_print=lilypond_executable() is not None,
+        install_hint=install_hint(),
     )
 
 

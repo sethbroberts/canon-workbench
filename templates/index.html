@@ -93,7 +93,7 @@
           <button type="button" data-export="ly-round" title="LilyPond source, to fine-tune the engraving by hand">LilyPond</button>
         </div>
         {% if not can_print %}
-        <p class="hint">PDF needs LilyPond: run <code>pip install lilypond</code>, then restart the app.</p>
+        <p class="hint">PDF needs LilyPond: run <code>{{ install_hint }}</code>, then restart the app.</p>
         {% endif %}
         <p id="export-status" class="quiet small"></p>
       </div>
