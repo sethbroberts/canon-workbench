@@ -29,16 +29,74 @@
         <label>Dedication <input id="dedication" type="text" class="wide" placeholder="For …, Christmas 2026"></label>
       </details>
 
-      <label for="melody">Melody</label>
-      <textarea id="melody" spellcheck="false" rows="7">{{ example }}</textarea>
-      <p class="hint">
-        <code>C4/4</code> pitch + octave / duration &middot;
-        <code>Bb3/8.</code> dotted &middot;
-        <code>R/2</code> rest &middot;
-        <code>~A4</code> tied from previous &middot;
-        <code>|</code> barline &middot;
-        <code>%</code> comment
-      </p>
+      <div class="modes" role="tablist" aria-label="Way of working">
+        <button type="button" role="tab" data-mode="free" class="on" title="Type the whole melody yourself">Free</button>
+        <button type="button" role="tab" data-mode="round" title="Step by step: chords first, then one phrase at a time">Write a round</button>
+        <button type="button" role="tab" data-mode="chain" title="Write the leader one segment at a time against the follower">Chain</button>
+        <button type="button" role="tab" data-mode="puzzle" title="Puzzle canons to solve">Puzzles</button>
+      </div>
+
+      <!-- Round wizard -->
+      <section id="guide-round" class="guide" hidden>
+        <div class="step-head">
+          <span id="step-count" class="quiet small"></span>
+          <h2 id="step-title"></h2>
+        </div>
+        <div id="step-body"></div>
+        <div class="step-nav">
+          <button type="button" id="step-back">&larr; Back</button>
+          <button type="button" id="step-next">Next &rarr;</button>
+        </div>
+        <ul id="phrase-overview" class="overview"></ul>
+      </section>
+
+      <!-- Chain mode -->
+      <section id="guide-chain" class="guide" hidden>
+        <p class="hint">
+          Write the leader one segment at a time. Each segment lasts as long as the entry delay (set below), and
+          is heard against the follower singing your previous segment at the chosen interval. Write a segment,
+          listen to it, fix it, then add the next.
+        </p>
+        <div id="segments"></div>
+        <div class="step-nav">
+          <button type="button" id="add-segment">+ Add segment</button>
+          <button type="button" id="remove-segment">Remove last</button>
+        </div>
+      </section>
+
+      <!-- Puzzles -->
+      <section id="guide-puzzle" class="guide" hidden>
+        <select id="puzzle-list" title="Choose a puzzle"></select>
+        <h2 id="puzzle-title"></h2>
+        <p id="puzzle-intro"></p>
+        <p id="puzzle-source" class="quiet small"></p>
+        <div id="puzzle-given"></div>
+        <div id="puzzle-answer-box">
+          <label for="puzzle-answer" id="puzzle-answer-label">Your phrase</label>
+          <textarea id="puzzle-answer" spellcheck="false" rows="2"></textarea>
+        </div>
+        <p id="puzzle-how" class="hint"></p>
+        <div class="step-nav">
+          <button type="button" id="puzzle-check" class="primary">Check answer</button>
+          <button type="button" id="puzzle-hint">Hint</button>
+          <button type="button" id="puzzle-reveal">Show solution</button>
+        </div>
+        <ol id="puzzle-hints" class="hints"></ol>
+        <div id="puzzle-result" aria-live="polite"></div>
+      </section>
+
+      <div id="melody-block">
+        <label for="melody">Melody</label>
+        <textarea id="melody" spellcheck="false" rows="7">{{ example }}</textarea>
+        <p class="hint">
+          <code>C4/4</code> pitch + octave / duration &middot;
+          <code>Bb3/8.</code> dotted &middot;
+          <code>R/2</code> rest &middot;
+          <code>~A4</code> tied from previous &middot;
+          <code>|</code> barline &middot;
+          <code>%</code> comment
+        </p>
+      </div>
 
       <label for="words">Words <span class="quiet small">(optional)</span></label>
       <textarea id="words" spellcheck="false" rows="3">{{ defaults.words }}</textarea>
@@ -123,6 +181,7 @@
           <span id="tempo-value">96</span>
         </label>
         <label class="inline"><input id="loop" type="checkbox"> Loop</label>
+        <label class="inline" id="backing-wrap" hidden title="Play the chord progression softly under the round"><input id="backing" type="checkbox" checked> Chords</label>
         <label class="inline">Sound
           <select id="sound">
             <option value="piano">piano</option>
@@ -138,6 +197,8 @@
 
   <script src="https://unpkg.com/tone@15.1.22/build/Tone.js"></script>
   <script src="{{ url_for('static', filename='player.js') }}"></script>
+  <script id="presets" type="application/json">{{ presets | tojson }}</script>
+  <script src="{{ url_for('static', filename='guide.js') }}"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

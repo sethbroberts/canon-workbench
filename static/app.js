@@ -21,6 +21,7 @@ function collect() {
     ending: el("ending").value,
     time_signature: el("time_signature").value,
     key: el("key").value,
+    guide: typeof Guide !== "undefined" ? Guide.state() : { mode: "free" },
   };
 }
 
@@ -68,8 +69,10 @@ async function refresh() {
   el("score").innerHTML = data.svg.join("");
   el("score").classList.remove("stale");
   Player.load(data.playback, data.timemap);
+  el("backing-wrap").hidden = !Player.hasBacking();
   buildMixer(data.playback.voices.length);
   showFindings(data.findings || []);
+  Guide.feedback(data);
   const s = data.summary;
   el("status").textContent =
     `${s.notes} notes · melody ${s.melody_bars} bars · entries every ${s.delay_beats} beats`;
@@ -78,6 +81,7 @@ async function refresh() {
 
 let timer = null;
 function scheduleRefresh() {
+  Guide.compose();
   markChanged();
   clearTimeout(timer);
   timer = setTimeout(refresh, 350);
@@ -224,6 +228,7 @@ el("tempo").oninput = () => {
 Player.setTempo(Number(el("tempo").value));
 
 el("loop").onchange = () => Player.setLoop(el("loop").checked);
+el("backing").onchange = () => Player.setBacking(el("backing").checked);
 el("sound").onchange = () => Player.setSound(el("sound").value);
 
 // Space bar plays/stops, except while typing in a text field.
@@ -251,6 +256,7 @@ function writeDraft() {
 }
 
 function markChanged() {
+  if (Guide.mode() === "puzzle") return; // puzzles never touch your own piece or draft
   dirty = true;
   if (currentSlug) setStatus("unsaved changes");
   writeDraft();
@@ -267,6 +273,7 @@ function applyPiece(p) {
   }
   intentional = new Set(p.intentional || []);
   el("more-info").open = Boolean(p.composer || p.dedication);
+  Guide.apply(p.guide);
 }
 
 async function loadPieceList() {
@@ -302,13 +309,14 @@ el("open-piece").onchange = async () => {
 };
 
 el("new-piece").onclick = () => {
+  if (Guide.mode() === "puzzle") return;
   if (!okToDiscard()) return;
   Player.stop();
   applyPiece({
     title: "", composer: "", dedication: "", words: "",
     melody: "% Type your melody here, e.g. C4/4 D4 E4 C4\n",
     voices: 3, delay_bars: 2, delay_beats: 0, interval: "P1", repeats: 1,
-    ending: "stagger", time_signature: "4/4", key: "C", intentional: [],
+    ending: "stagger", time_signature: "4/4", key: "C", intentional: [], guide: { mode: "free" },
   });
   currentSlug = "";
   dirty = false;
@@ -319,6 +327,7 @@ el("new-piece").onclick = () => {
 };
 
 el("save-piece").onclick = async () => {
+  if (Guide.mode() === "puzzle") { setStatus("puzzles aren't saved; switch back to save your piece"); return; }
   const piece = collect();
   if (!piece.title.trim()) { setStatus("give it a title first"); el("title").focus(); return; }
   const res = await fetch("/api/pieces", {
@@ -382,6 +391,8 @@ document.querySelectorAll("[data-export]").forEach(b => {
 el("tempo").addEventListener("change", markChanged);
 
 // ---- Start: restore the last draft, if any ----
+
+Guide.init();
 
 try {
   const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");

@@ -178,3 +178,42 @@ input.wide {
 .export .buttons { display: flex; flex-wrap: wrap; gap: 6px; }
 .export button { font-size: 14px; padding: 4px 10px; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Modes: free / round wizard / chain / puzzles */
+.modes { display: flex; gap: 0; margin: 4px 0 14px; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.modes button { flex: 1; border: 0; border-radius: 0; padding: 6px 4px; font-size: 14px; background: white; }
+.modes button + button { border-left: 1px solid var(--line); }
+.modes button.on { background: var(--ink); color: white; }
+.guide { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 12px; margin-bottom: 14px; }
+.guide h2 { font-size: 17px; margin: 2px 0 8px; }
+.step-head { margin-bottom: 4px; }
+.step-nav { display: flex; gap: 8px; margin: 10px 0 4px; flex-wrap: wrap; }
+.step-nav button { font-size: 14px; padding: 4px 10px; }
+button.primary { background: var(--ink); color: white; border-color: var(--ink); }
+.guide textarea { font-size: 14px; }
+.guide select, .guide input[type="text"] {
+  font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: white;
+}
+.guide .row { display: flex; gap: 14px; flex-wrap: wrap; margin: 8px 0; }
+.guide .row label { font-weight: 500; }
+.status { font-size: 13px; margin: 4px 0 0; }
+.status .ok { color: #2e7d32; }
+.status .bad { color: var(--f-error); }
+.status .meh { color: var(--f-warning); }
+.overview { list-style: none; padding: 0; margin: 10px 0 0; border-top: 1px solid var(--line); font-size: 13px; }
+.overview li { padding: 4px 0; display: flex; gap: 8px; }
+.overview li.current { font-weight: 600; }
+.overview .what { flex: 1; color: var(--quiet); }
+.segment { border-top: 1px solid var(--line); padding: 8px 0; }
+.segment:first-child { border-top: 0; }
+.segment .seg-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.segment .against { color: var(--quiet); font-size: 13px; margin: 2px 0 6px; }
+#puzzle-list { width: 100%; margin-bottom: 8px; }
+#puzzle-given code { display: block; margin: 2px 0; white-space: pre-wrap; }
+#puzzle-given .missing { color: var(--quiet); font-style: italic; }
+.hints { font-size: 14px; padding-left: 20px; }
+#puzzle-result { font-size: 14px; }
+#puzzle-result .solved { color: #2e7d32; font-weight: 600; }
+#puzzle-result .not-yet { color: var(--f-error); }
+#puzzle-result ul { margin: 6px 0; padding-left: 18px; color: var(--quiet); }
+.locked { opacity: 0.55; pointer-events: none; }

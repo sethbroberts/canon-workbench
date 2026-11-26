@@ -35,6 +35,23 @@ bar, and ✓ to mark it intentional. Correctly handled dissonances (suspensions,
 passing and neighbor tones, anticipations, cambiata, échappée) are listed under
 "Recognized dissonances"; open that list to color them purple.
 
+**Ways of working** (the buttons above the melody):
+- **Free**: type the whole melody yourself.
+- **Write a round**: a step-by-step wizard. Choose the phrase length and number of
+  voices, then a chord progression that repeats under every phrase (presets
+  included), then write one phrase at a time with a hint for each step. Each
+  phrase shows whether it's the right length, which strong-beat notes fall
+  outside the chord, and how many errors involve it. Tick **Chords** next to
+  Play to hear the progression softly under the round.
+- **Chain**: write a canon's leader one segment at a time (each as long as the
+  entry delay). Each segment says what the follower sings against it, counts
+  the errors in its bars, and ▶ plays just those bars.
+- **Puzzles**: seven puzzle canons in three kinds: complete a round's missing
+  phrase, find where (and at what interval) the next voice enters, and fix a
+  canon with a planted wrong note. Hints come one at a time; solved puzzles get
+  a ✓ (remembered in your browser). Your own piece is set aside while you
+  solve puzzles and comes back when you switch modes.
+
 **Words**: type them in the Words box, one syllable per note, LilyPond-style:
 `Do -- na no -- bis pa -- cem`. They appear under every voice.
 
@@ -94,6 +111,8 @@ music/
   playback.py     voices -> note events for the browser player
   lyrics.py       words -> syllables on notes
   export.py       MusicXML, MIDI, LilyPond source and PDF
+  harmony.py      chord progressions: chord-tone check, backing chords
+  puzzles.py      load, hide answers, and grade puzzles
   rules/          the rule checker
     texture.py    sounding notes, vertical moments, beat strength
     intervals.py  consonance, interval names, steps and leaps
@@ -101,13 +120,14 @@ music/
     motion.py     parallel, contrary and hidden fifths/octaves
     melodic.py    leaps, range, final note
 static/
-  app.js          editor, settings, player controls
+  app.js          editor, settings, player controls, save/open, export
+  guide.js        round wizard, chain mode, puzzles
   player.js       Tone.js playback and note highlighting
   style.css
 templates/        HTML page
 tests/            pytest tests
 pieces/           your saved pieces (JSON)
-puzzles/          (coming) puzzle canons to solve
+puzzles/          puzzle canons (JSON); add your own in the same format
 ```
 
 The `music/` package has no web code, so it can be tested on its own and
