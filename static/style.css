@@ -145,9 +145,36 @@ button {
 #score g.note.f-warning, #score g.note.f-warning * { fill: var(--f-warning); stroke: var(--f-warning); }
 #score g.note.f-info, #score g.note.f-info * { fill: var(--f-info); stroke: var(--f-info); }
 #score g.note.f-ok, #score g.note.f-ok * { fill: var(--f-ok); stroke: var(--f-ok); }
+/* Words under a flagged note stay black; only the note itself is colored. */
+#score g.note.f-error g.verse *, #score g.note.f-warning g.verse *,
+#score g.note.f-info g.verse *, #score g.note.f-ok g.verse * { fill: var(--ink); stroke: none; }
 #score g.note.focus { filter: drop-shadow(0 0 2.5px #f5b700) drop-shadow(0 0 2.5px #f5b700); }
 
 /* Notes sounding right now (wins over the checker's colors) */
 #score g.note.playing, #score g.note.playing * { fill: var(--playing); stroke: var(--playing); }
 #score svg { width: 100%; height: auto; display: block; }
 #score.stale { opacity: 0.45; }
+
+/* Piece, words, export */
+.quiet { color: var(--quiet); }
+.piece-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.piece-bar select { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; max-width: 14em; }
+input.wide {
+  width: 100%;
+  font: inherit;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  margin-bottom: 10px;
+}
+#title { font-size: 17px; font-weight: 600; }
+#more-info { margin: -4px 0 14px; font-size: 14px; }
+#more-info summary { cursor: pointer; color: var(--quiet); margin-bottom: 8px; }
+#more-info label { font-weight: 500; }
+#words { font-size: 14px; }
+.export { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 12px; }
+.export h2 { margin: 0 0 8px; font-size: 17px; }
+.export .buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+.export button { font-size: 14px; padding: 4px 10px; }
+button:disabled { opacity: 0.45; cursor: not-allowed; }

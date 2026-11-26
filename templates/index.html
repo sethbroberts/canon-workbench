@@ -7,7 +7,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
+<body data-can-print="{{ 'yes' if can_print else 'no' }}">
   <header>
     <h1>Canon Workbench</h1>
     <p class="sub">Type a melody; see it in canon with itself.</p>
@@ -15,6 +15,20 @@
 
   <main>
     <section class="editor">
+      <div class="piece-bar">
+        <select id="open-piece" title="Open a saved piece"><option value="">Open…</option></select>
+        <button type="button" id="new-piece">New</button>
+        <button type="button" id="save-piece">Save</button>
+        <span id="save-status" class="quiet small"></span>
+      </div>
+      <label for="title">Title</label>
+      <input id="title" type="text" class="wide" value="{{ defaults.title }}">
+      <details id="more-info">
+        <summary>Composer and dedication</summary>
+        <label>Composer <input id="composer" type="text" class="wide" value="{{ defaults.composer }}"></label>
+        <label>Dedication <input id="dedication" type="text" class="wide" placeholder="For …, Christmas 2026"></label>
+      </details>
+
       <label for="melody">Melody</label>
       <textarea id="melody" spellcheck="false" rows="7">{{ example }}</textarea>
       <p class="hint">
@@ -24,6 +38,13 @@
         <code>~A4</code> tied from previous &middot;
         <code>|</code> barline &middot;
         <code>%</code> comment
+      </p>
+
+      <label for="words">Words <span class="quiet small">(optional)</span></label>
+      <textarea id="words" spellcheck="false" rows="3">{{ defaults.words }}</textarea>
+      <p class="hint">
+        One syllable per note: <code>Do -- na no -- bis</code>. <code>--</code> joins syllables of a word,
+        <code>_</code> holds a syllable over another note. Tied notes and rests are skipped.
       </p>
 
       <div class="settings">
@@ -60,6 +81,21 @@
         <label>Key
           <input id="key" type="text" size="4" value="{{ defaults.key }}" title="C, F, Bb, a, f# (lowercase = minor)">
         </label>
+      </div>
+
+      <div class="export">
+        <h2>Print and export</h2>
+        <div class="buttons">
+          <button type="button" data-export="pdf-round" class="needs-lilypond" title="One staff with circled entry numbers, the traditional way to print a round">PDF: round</button>
+          <button type="button" data-export="pdf-score" class="needs-lilypond" title="Every voice written out">PDF: full score</button>
+          <button type="button" data-export="musicxml" title="Opens in MuseScore, Finale, Sibelius, Dorico">MusicXML</button>
+          <button type="button" data-export="midi">MIDI</button>
+          <button type="button" data-export="ly-round" title="LilyPond source, to fine-tune the engraving by hand">LilyPond</button>
+        </div>
+        {% if not can_print %}
+        <p class="hint">PDF needs LilyPond: run <code>pip install lilypond</code>, then restart the app.</p>
+        {% endif %}
+        <p id="export-status" class="quiet small"></p>
       </div>
 
       <div id="messages" aria-live="polite"></div>

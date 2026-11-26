@@ -35,6 +35,25 @@ bar, and ✓ to mark it intentional. Correctly handled dissonances (suspensions,
 passing and neighbor tones, anticipations, cambiata, échappée) are listed under
 "Recognized dissonances"; open that list to color them purple.
 
+**Words**: type them in the Words box, one syllable per note, LilyPond-style:
+`Do -- na no -- bis pa -- cem`. They appear under every voice.
+
+**Save / Open / New** keep your pieces in the `pieces/` folder (one JSON file
+each, including any findings you marked intentional). Unsaved work is also kept
+in the browser, so a reload loses nothing. Ctrl+S (Cmd+S) saves.
+
+**Print and export**:
+- **PDF: round** is the traditional way to print a round: the melody once, with
+  circled numbers where each voice comes in, the words, and a line of
+  instructions. Good for a card.
+- **PDF: full score** writes every voice out.
+- **MusicXML** opens in MuseScore, Finale, Sibelius or Dorico; **MIDI** plays
+  anywhere; **LilyPond** gives you the source to fine-tune the engraving.
+
+PDFs are engraved by [LilyPond](https://lilypond.org), which `pip install -r
+requirements.txt` installs as the `lilypond` Python package (a large download,
+about 100 MB). A LilyPond already on your PATH is used first if you have one.
+
 Run the tests with:
 
 ```bash
@@ -68,6 +87,8 @@ music/
   canon.py        Melody + settings -> voices
   render.py       voices -> music21 score -> MusicXML -> SVG (Verovio) + timemap
   playback.py     voices -> note events for the browser player
+  lyrics.py       words -> syllables on notes
+  export.py       MusicXML, MIDI, LilyPond source and PDF
   rules/          the rule checker
     texture.py    sounding notes, vertical moments, beat strength
     intervals.py  consonance, interval names, steps and leaps
@@ -80,6 +101,7 @@ static/
   style.css
 templates/        HTML page
 tests/            pytest tests
+pieces/           your saved pieces (JSON)
 puzzles/          (coming) puzzle canons to solve
 ```
 

@@ -1,11 +1,17 @@
 // Canon Workbench front end: send the melody + settings to Flask, show the score.
 
-const fields = ["melody", "voices", "delay_bars", "delay_beats", "interval",
-                "repeats", "ending", "time_signature", "key"];
+const fields = ["title", "composer", "dedication", "melody", "words", "voices", "delay_bars",
+                "delay_beats", "interval", "repeats", "ending", "time_signature", "key"];
 const el = id => document.getElementById(id);
 
 function collect() {
   return {
+    title: el("title").value,
+    composer: el("composer").value,
+    dedication: el("dedication").value,
+    words: el("words").value,
+    tempo: Number(el("tempo").value),
+    intentional: [...intentional],
     melody: el("melody").value,
     voices: Number(el("voices").value),
     delay_bars: Number(el("delay_bars").value) || 0,
@@ -72,6 +78,7 @@ async function refresh() {
 
 let timer = null;
 function scheduleRefresh() {
+  markChanged();
   clearTimeout(timer);
   timer = setTimeout(refresh, 350);
 }
@@ -83,14 +90,10 @@ for (const id of fields) {
 
 // ---- Rule checker ----
 
-// Findings you've marked "intentional" stay listed but greyed out. Remembered in
-// this browser (saving them with the piece comes with save/load in phase 4).
-const INTENTIONAL_KEY = "canonWorkbench.intentional";
+// Findings you've marked "intentional" stay listed but greyed out. They belong to
+// the piece: saved with it, and restored when you open it.
 let intentional = new Set();
-try { intentional = new Set(JSON.parse(localStorage.getItem(INTENTIONAL_KEY) || "[]")); } catch (e) { /* storage off */ }
-function saveIntentional() {
-  try { localStorage.setItem(INTENTIONAL_KEY, JSON.stringify([...intentional])); } catch (e) { /* storage off */ }
-}
+function saveIntentional() { markChanged(); }
 
 let currentFindings = [];
 const SEVERITY_RANK = { error: 3, warning: 2, info: 1 };
@@ -232,4 +235,162 @@ document.addEventListener("keydown", e => {
   }
 });
 
+// ---- Pieces: save, open, new, and an automatic draft ----
+
+const DRAFT_KEY = "canonWorkbench.draft";
+let currentSlug = "";   // the saved piece this work came from, if any
+let dirty = false;      // changed since the last save or open
+
+function setStatus(text) { el("save-status").textContent = text; }
+
+// The draft is the work in progress, kept in this browser so a reload loses nothing.
+function writeDraft() {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ slug: currentSlug, dirty, piece: collect() }));
+  } catch (e) { /* storage off */ }
+}
+
+function markChanged() {
+  dirty = true;
+  if (currentSlug) setStatus("unsaved changes");
+  writeDraft();
+}
+
+function applyPiece(p) {
+  for (const id of fields) {
+    if (p[id] !== undefined && p[id] !== null) el(id).value = p[id];
+  }
+  if (p.tempo) {
+    el("tempo").value = p.tempo;
+    el("tempo-value").textContent = p.tempo;
+    Player.setTempo(Number(p.tempo));
+  }
+  intentional = new Set(p.intentional || []);
+  el("more-info").open = Boolean(p.composer || p.dedication);
+}
+
+async function loadPieceList() {
+  const select = el("open-piece");
+  let pieces = [];
+  try { pieces = await (await fetch("/api/pieces")).json(); } catch (e) { return; }
+  select.innerHTML = '<option value="">Open…</option>';
+  for (const p of pieces) {
+    const o = document.createElement("option");
+    o.value = p.slug;
+    o.textContent = p.title;
+    select.appendChild(o);
+  }
+}
+
+function okToDiscard() {
+  return !dirty || confirm("You have unsaved changes. Discard them?");
+}
+
+el("open-piece").onchange = async () => {
+  const slug = el("open-piece").value;
+  el("open-piece").value = "";
+  if (!slug || !okToDiscard()) return;
+  const res = await fetch(`/api/pieces/${slug}`);
+  if (!res.ok) { setStatus("couldn't open that piece"); return; }
+  Player.stop();
+  applyPiece(await res.json());
+  currentSlug = slug;
+  refresh();
+  dirty = false;
+  writeDraft();
+  setStatus("opened");
+};
+
+el("new-piece").onclick = () => {
+  if (!okToDiscard()) return;
+  Player.stop();
+  applyPiece({
+    title: "", composer: "", dedication: "", words: "",
+    melody: "% Type your melody here, e.g. C4/4 D4 E4 C4\n",
+    voices: 3, delay_bars: 2, delay_beats: 0, interval: "P1", repeats: 1,
+    ending: "stagger", time_signature: "4/4", key: "C", intentional: [],
+  });
+  currentSlug = "";
+  dirty = false;
+  writeDraft();
+  setStatus("new piece");
+  el("title").focus();
+  refresh();
+};
+
+el("save-piece").onclick = async () => {
+  const piece = collect();
+  if (!piece.title.trim()) { setStatus("give it a title first"); el("title").focus(); return; }
+  const res = await fetch("/api/pieces", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(piece),
+  });
+  const data = await res.json();
+  if (!data.ok) { setStatus(data.error || "save failed"); return; }
+  currentSlug = data.slug;
+  dirty = false;
+  const time = new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  setStatus(`saved ${time}`);
+  writeDraft();
+  loadPieceList();
+};
+
+// Ctrl+S / Cmd+S saves.
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+    e.preventDefault();
+    el("save-piece").click();
+  }
+});
+
+// ---- Print and export ----
+
+async function exportAs(kind, button) {
+  const label = button.textContent;
+  button.disabled = true;
+  el("export-status").textContent = kind.startsWith("pdf") ? "Engraving with LilyPond…" : "Preparing…";
+  try {
+    const res = await fetch(`/api/export/${kind}`, {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(collect()),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => null);
+      showMessages(data?.errors || [{ message: `Export failed (${res.status})` }], []);
+      el("export-status").textContent = "";
+      return;
+    }
+    const blob = await res.blob();
+    const match = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = match ? match[1] : `canon.${kind}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    el("export-status").textContent = `Downloaded ${a.download}`;
+  } finally {
+    button.disabled = false;
+    button.textContent = label;
+  }
+}
+
+document.querySelectorAll("[data-export]").forEach(b => {
+  if (b.classList.contains("needs-lilypond") && document.body.dataset.canPrint !== "yes") b.disabled = true;
+  b.onclick = () => exportAs(b.dataset.export, b);
+});
+
+el("tempo").addEventListener("change", markChanged);
+
+// ---- Start: restore the last draft, if any ----
+
+try {
+  const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+  if (draft && draft.piece) {
+    applyPiece(draft.piece);
+    currentSlug = draft.slug || "";
+    dirty = Boolean(draft.dirty);
+    if (dirty) setStatus("restored your unsaved work");
+  }
+} catch (e) { /* no draft */ }
+loadPieceList();
 refresh();
