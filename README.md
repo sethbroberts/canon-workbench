@@ -26,6 +26,15 @@ plays; the changes are picked up on the fly. Playback needs an internet
 connection the first time (it loads the Tone.js audio library and piano
 samples); if the piano samples can't load, it falls back to a synth sound.
 
+The **Check** panel lists problems bar by bar, using strict Renaissance rules:
+parallel and hidden fifths/octaves, dissonances that aren't prepared or
+approached by step, bad leaps, notes outside D4–F5, and a melody that doesn't
+end on the tonic. Problem notes are colored on the score (red = error,
+amber = warning). Click a finding to outline its notes, ▶ to hear just that
+bar, and ✓ to mark it intentional. Correctly handled dissonances (suspensions,
+passing and neighbor tones, anticipations, cambiata, échappée) are listed under
+"Recognized dissonances"; open that list to color them purple.
+
 Run the tests with:
 
 ```bash
@@ -59,6 +68,12 @@ music/
   canon.py        Melody + settings -> voices
   render.py       voices -> music21 score -> MusicXML -> SVG (Verovio) + timemap
   playback.py     voices -> note events for the browser player
+  rules/          the rule checker
+    texture.py    sounding notes, vertical moments, beat strength
+    intervals.py  consonance, interval names, steps and leaps
+    dissonance.py suspensions, passing/neighbor tones and other figures
+    motion.py     parallel, contrary and hidden fifths/octaves
+    melodic.py    leaps, range, final note
 static/
   app.js          editor, settings, player controls
   player.js       Tone.js playback and note highlighting

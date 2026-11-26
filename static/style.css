@@ -102,7 +102,52 @@ button {
 .voice-strip input[type="range"] { width: 70px; }
 .voice-strip select { font: inherit; font-size: 13px; }
 
-/* Notes sounding right now */
-#score g.note.playing, #score g.note.playing * { fill: #c2410c; stroke: #c2410c; }
+/* Rule checker */
+:root {
+  --f-error: #c62828;
+  --f-warning: #b26a00;
+  --f-info: #6d28d9;
+  --f-ok: #9e9a93;
+  --playing: #1d4ed8;
+}
+#check { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 12px; }
+.check-head { display: flex; align-items: baseline; gap: 10px; }
+.check-head h2 { margin: 0; font-size: 17px; }
+#check-summary { color: var(--quiet); font-size: 14px; }
+.small { font-size: 13px; }
+.hint-inline { color: var(--quiet); font-size: 12px; margin-left: 6px; }
+
+.findings { list-style: none; margin: 8px 0; padding: 0; }
+.finding {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-left: 3px solid var(--line);
+  margin-bottom: 4px;
+  background: white;
+  border-radius: 0 4px 4px 0;
+  font-size: 14px;
+}
+.finding.error { border-left-color: var(--f-error); }
+.finding.warning { border-left-color: var(--f-warning); }
+.finding.info { border-left-color: var(--f-info); }
+.finding.ok { opacity: 0.55; }
+.finding.ok .where::after { content: " · marked intentional"; font-weight: 400; color: var(--quiet); }
+.finding.selected { background: #f3f0ea; }
+.finding .text { flex: 1; cursor: pointer; }
+.finding .where { font-weight: 600; }
+.finding .msg { color: var(--quiet); font-size: 13px; }
+.finding button { padding: 1px 7px; font-size: 12px; }
+#recognized summary { cursor: pointer; font-size: 14px; margin-top: 8px; }
+
+#score g.note.f-error, #score g.note.f-error * { fill: var(--f-error); stroke: var(--f-error); }
+#score g.note.f-warning, #score g.note.f-warning * { fill: var(--f-warning); stroke: var(--f-warning); }
+#score g.note.f-info, #score g.note.f-info * { fill: var(--f-info); stroke: var(--f-info); }
+#score g.note.f-ok, #score g.note.f-ok * { fill: var(--f-ok); stroke: var(--f-ok); }
+#score g.note.focus { filter: drop-shadow(0 0 2.5px #f5b700) drop-shadow(0 0 2.5px #f5b700); }
+
+/* Notes sounding right now (wins over the checker's colors) */
+#score g.note.playing, #score g.note.playing * { fill: var(--playing); stroke: var(--playing); }
 #score svg { width: 100%; height: auto; display: block; }
 #score.stale { opacity: 0.45; }

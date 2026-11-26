@@ -63,6 +63,7 @@ async function refresh() {
   el("score").classList.remove("stale");
   Player.load(data.playback, data.timemap);
   buildMixer(data.playback.voices.length);
+  showFindings(data.findings || []);
   const s = data.summary;
   el("status").textContent =
     `${s.notes} notes · melody ${s.melody_bars} bars · entries every ${s.delay_beats} beats`;
@@ -79,6 +80,98 @@ for (const id of fields) {
   el(id).addEventListener("input", scheduleRefresh);
   el(id).addEventListener("change", scheduleRefresh);
 }
+
+// ---- Rule checker ----
+
+// Findings you've marked "intentional" stay listed but greyed out. Remembered in
+// this browser (saving them with the piece comes with save/load in phase 4).
+const INTENTIONAL_KEY = "canonWorkbench.intentional";
+let intentional = new Set();
+try { intentional = new Set(JSON.parse(localStorage.getItem(INTENTIONAL_KEY) || "[]")); } catch (e) { /* storage off */ }
+function saveIntentional() {
+  try { localStorage.setItem(INTENTIONAL_KEY, JSON.stringify([...intentional])); } catch (e) { /* storage off */ }
+}
+
+let currentFindings = [];
+const SEVERITY_RANK = { error: 3, warning: 2, info: 1 };
+
+function plural(n, word) { return `${n} ${word}${n === 1 ? "" : "s"}`; }
+
+function findingItem(f) {
+  const li = document.createElement("li");
+  li.className = `finding ${f.severity}` + (intentional.has(f.key) ? " ok" : "");
+  const beat = Number.isInteger(f.beat) ? f.beat : f.beat.toFixed(2).replace(/0+$/, "");
+  li.innerHTML = `
+    <button type="button" class="hear" title="Hear this passage">&#9654;</button>
+    <div class="text">
+      <div class="where"></div>
+      <div class="msg"></div>
+    </div>
+    <button type="button" class="mark" title="Mark as intentional (or undo)">&#10003;</button>`;
+  li.querySelector(".where").textContent = `Bar ${f.bar}, beat ${beat} · ${f.label}`;
+  li.querySelector(".msg").textContent = f.message;
+  li.querySelector(".hear").onclick = () => Player.playRange(f.play_from, f.play_to);
+  li.querySelector(".text").onclick = () => focusFinding(f, li);
+  li.querySelector(".mark").onclick = () => {
+    intentional.has(f.key) ? intentional.delete(f.key) : intentional.add(f.key);
+    saveIntentional();
+    showFindings(currentFindings);
+  };
+  return li;
+}
+
+function showFindings(findings) {
+  currentFindings = findings;
+  el("check").hidden = false;
+  const problems = findings.filter(f => f.severity !== "info");
+  const recognized = findings.filter(f => f.severity === "info");
+  const open = problems.filter(f => !intentional.has(f.key));
+  const errors = open.filter(f => f.severity === "error").length;
+  const warnings = open.filter(f => f.severity === "warning").length;
+  el("check-summary").textContent = errors || warnings
+    ? `${plural(errors, "error")} · ${plural(warnings, "warning")}`
+    : "no problems found";
+
+  const list = el("findings");
+  list.innerHTML = "";
+  problems.forEach(f => list.appendChild(findingItem(f)));
+  const rlist = el("recognized-list");
+  rlist.innerHTML = "";
+  recognized.forEach(f => rlist.appendChild(findingItem(f)));
+  el("recognized-count").textContent = recognized.length;
+  colorScore();
+}
+
+// Color notes by the most serious finding that involves them.
+function colorScore() {
+  const score = el("score");
+  score.querySelectorAll(".f-error, .f-warning, .f-info, .f-ok").forEach(n =>
+    n.classList.remove("f-error", "f-warning", "f-info", "f-ok"));
+  if (!el("show-marks").checked) return;
+  const showInfo = el("recognized").open;
+  const best = new Map(); // note id -> class
+  for (const f of currentFindings) {
+    if (f.severity === "info" && !showInfo) continue;
+    const cls = intentional.has(f.key) ? "f-ok" : `f-${f.severity}`;
+    const rank = intentional.has(f.key) ? 0 : SEVERITY_RANK[f.severity];
+    for (const id of f.note_ids) {
+      if (!best.has(id) || best.get(id).rank < rank) best.set(id, { cls, rank });
+    }
+  }
+  for (const [id, { cls }] of best) document.getElementById(id)?.classList.add(cls);
+}
+
+function focusFinding(f, li) {
+  document.querySelectorAll("#score .focus").forEach(n => n.classList.remove("focus"));
+  document.querySelectorAll(".finding.selected").forEach(n => n.classList.remove("selected"));
+  li.classList.add("selected");
+  const nodes = f.note_ids.map(id => document.getElementById(id)).filter(Boolean);
+  nodes.forEach(n => n.classList.add("focus"));
+  nodes[0]?.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+el("show-marks").onchange = colorScore;
+el("recognized").addEventListener("toggle", colorScore);
 
 // ---- Player controls ----
 

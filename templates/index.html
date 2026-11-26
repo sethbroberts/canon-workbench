@@ -63,6 +63,20 @@
       </div>
 
       <div id="messages" aria-live="polite"></div>
+
+      <section id="check" hidden>
+        <div class="check-head">
+          <h2>Check</h2>
+          <span id="check-summary"></span>
+        </div>
+        <label class="inline small"><input type="checkbox" id="show-marks" checked> Color problems on the score</label>
+        <ul id="findings" class="findings"></ul>
+        <details id="recognized">
+          <summary>Recognized dissonances (<span id="recognized-count">0</span>)
+            <span class="hint-inline">open to color them on the score</span></summary>
+          <ul id="recognized-list" class="findings"></ul>
+        </details>
+      </section>
     </section>
 
     <section class="score">

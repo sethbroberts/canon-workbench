@@ -84,6 +84,7 @@ const Player = (() => {
     for (const moment of timemap) {
       transportIds.push(Tone.Transport.schedule(time => {
         Tone.Draw.schedule(() => {
+          if (Tone.Transport.state !== "started") return; // arrived after Stop
           if (moment.q === 0) clearHighlights();
           for (const id of moment.off) document.getElementById(id)?.classList.remove("playing");
           for (const id of moment.on) document.getElementById(id)?.classList.add("playing");
@@ -124,9 +125,34 @@ const Player = (() => {
     onStateChange(true);
   }
 
+  // Play just one passage (in quarter notes), e.g. the bar a finding is in.
+  let rangeStopId = null;
+  async function playRange(from, to) {
+    if (typeof Tone === "undefined") return play();
+    await Tone.start();
+    if (!voices.length) rebuild();
+    if (Tone.Transport.state === "started") stop();
+    if (sound === "piano" && !pianoFailed) {
+      await Promise.race([Tone.loaded(), new Promise(r => setTimeout(r, 8000))]);
+    }
+    Tone.Transport.loop = false;
+    rangeStopId = Tone.Transport.scheduleOnce(time => {
+      Tone.Draw.schedule(() => stop(), time);
+    }, ticks(to));
+    clearHighlights();
+    Tone.Transport.start("+0.05", ticks(from));
+    onStateChange(true);
+  }
+
   function stop() {
     if (typeof Tone === "undefined") return;
+    if (rangeStopId !== null) {
+      Tone.Transport.clear(rangeStopId);
+      rangeStopId = null;
+      Tone.Transport.loop = loop; // a passage plays once; restore the loop setting
+    }
     Tone.Transport.stop();
+    Tone.Draw.cancel(0); // drop screen updates queued ahead of the audio
     voices.forEach(v => v.instrument.releaseAll?.());
     clearHighlights();
     onStateChange(false);
@@ -135,6 +161,7 @@ const Player = (() => {
   return {
     load,
     play,
+    playRange,
     stop,
     isPlaying: () => typeof Tone !== "undefined" && Tone.Transport.state === "started",
     setTempo: bpm => { if (typeof Tone !== "undefined") Tone.Transport.bpm.value = bpm; },
