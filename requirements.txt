@@ -1,5 +1,7 @@
 flask>=3.0
 music21>=9.1
 verovio>=4.3
-lilypond>=2.24
+# LilyPond for PDF output. The pip package exists for Windows and Linux only;
+# on a Mac install it with Homebrew instead:  brew install lilypond
+lilypond>=2.24; sys_platform != "darwin"
 pytest>=8.0

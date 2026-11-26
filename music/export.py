@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 from dataclasses import dataclass
 from fractions import Fraction
@@ -233,11 +234,26 @@ def lilypond_source(
 
 # ---- PDF ----
 
+# Where Homebrew puts LilyPond on a Mac (Apple Silicon, then Intel), in case the
+# app was started without Homebrew on the PATH.
+HOMEBREW_LILYPOND = ["/opt/homebrew/bin/lilypond", "/usr/local/bin/lilypond"]
+
+
+def install_hint() -> str:
+    """How to install LilyPond on this computer."""
+    if sys.platform == "darwin":
+        return "brew install lilypond"
+    return "pip install lilypond"
+
+
 def lilypond_executable() -> str | None:
-    """Find LilyPond: on the PATH, or from the 'lilypond' Python package."""
+    """Find LilyPond: on the PATH, in Homebrew's folders, or from the 'lilypond' Python package."""
     found = shutil.which("lilypond")
     if found:
         return found
+    for path in HOMEBREW_LILYPOND:
+        if os.access(path, os.X_OK):
+            return path
     try:
         import lilypond  # pip install lilypond
 
@@ -253,7 +269,8 @@ class LilyPondError(RuntimeError):
 def to_pdf(ly_source: str, timeout: int = 120) -> bytes:
     exe = lilypond_executable()
     if exe is None:
-        raise LilyPondError("LilyPond isn't installed. Run: pip install lilypond  (or get it from lilypond.org)")
+        raise LilyPondError(f"LilyPond isn't installed. Run: {install_hint()}  (or get it from lilypond.org), "
+                            "then restart the app.")
     with tempfile.TemporaryDirectory() as tmp:
         src = os.path.join(tmp, "piece.ly")
         with open(src, "w", encoding="utf-8") as f:
