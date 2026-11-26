@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from fractions import Fraction
-from typing import Union
+from typing import Any, Union
 
 # Semitones above C for each natural note name.
 STEP_SEMITONES = {"C": 0, "D": 2, "E": 4, "F": 5, "G": 7, "A": 9, "B": 11}
@@ -43,6 +43,7 @@ class Note:
     pitch: Pitch
     duration: Fraction
     tie_to_next: bool = False  # True if this note is tied into the following note
+    lyric: Any = None  # a lyrics.Syllable sung on this note, if any
 
     @property
     def is_rest(self) -> bool:

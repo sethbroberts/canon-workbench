@@ -6,7 +6,7 @@ one phrase. A canon at the fifth uses interval "P5", and so on.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from fractions import Fraction
 
 from music21 import interval as m21interval
@@ -81,7 +81,7 @@ def _shift(event: Event, interval_name: str, times: int, octaves: int) -> Event:
     p = transpose_pitch(event.pitch, interval_name, times)
     if octaves:
         p = Pitch(p.step, p.alter, p.octave + octaves)
-    return Note(p, event.duration, event.tie_to_next)
+    return replace(event, pitch=p)  # keeps duration, tie and lyric
 
 
 def _cycle(events: list[Event], length: Fraction) -> list[Event]:
@@ -99,12 +99,12 @@ def _cycle(events: list[Event], length: Fraction) -> list[Event]:
                 out.append(e)
                 filled += e.duration
             else:  # cut the final note to fit
-                out.append(Rest(room) if isinstance(e, Rest) else Note(e.pitch, room))
+                out.append(Rest(room) if isinstance(e, Rest) else replace(e, duration=room, tie_to_next=False))
                 filled += room
     # A tie can't point past the end.
     if out and isinstance(out[-1], Note) and out[-1].tie_to_next:
         last = out[-1]
-        out[-1] = Note(last.pitch, last.duration)
+        out[-1] = replace(last, tie_to_next=False)
     return out
 
 

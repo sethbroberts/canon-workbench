@@ -78,6 +78,9 @@ def build_score(
                     n.tie = tie.Tie("stop")
                 elif e.tie_to_next:
                     n.tie = tie.Tie("start")
+                if e.lyric is not None:
+                    n.addLyric(e.lyric.text)
+                    n.lyrics[0].syllabic = e.lyric.syllabic
                 tied_from_prev = e.tie_to_next
                 part.append(n)
             else:
