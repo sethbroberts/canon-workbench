@@ -13,6 +13,8 @@ const Player = (() => {
   let data = null;       // {length, voices: [{number, events: [{midi, start, dur}]}]}
   let timemap = [];      // [{q, on: [ids], off: [ids]}]
   let voices = [];       // per voice: {channel, instrument, part}
+  let backing = null;    // optional chords under the round: {channel, instrument, part}
+  let backingOn = true;
   let transportIds = []; // ids from Tone.Transport.schedule, to cancel on rebuild
   let sound = "piano";
   let pianoFailed = false;
@@ -55,12 +57,28 @@ const Player = (() => {
   function teardown() {
     for (const id of transportIds) Tone.Transport.clear(id);
     transportIds = [];
-    for (const v of voices) {
+    for (const v of voices.concat(backing ? [backing] : [])) {
       v.part.dispose();
       v.instrument.dispose();
       v.channel.dispose();
     }
     voices = [];
+    backing = null;
+  }
+
+  // Soft chords under the voices (the round wizard's progression).
+  function buildBacking(events) {
+    const channel = new Tone.Channel({ volume: -14, mute: !backingOn }).toDestination();
+    const instrument = new Tone.PolySynth(Tone.Synth, {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.08, decay: 0.3, sustain: 0.7, release: 0.8 },
+    }).connect(channel);
+    const chords = events.map(e => ({ time: ticks(e.start), midi: e.midi, dur: e.dur }));
+    const part = new Tone.Part((time, c) => {
+      const freqs = c.midi.map(m => Tone.Frequency(m, "midi").toFrequency());
+      instrument.triggerAttackRelease(freqs, ticks(c.dur), time);
+    }, chords).start(0);
+    backing = { channel, instrument, part };
   }
 
   // (Re)build instruments and scheduled notes from the current data.
@@ -80,6 +98,7 @@ const Player = (() => {
       }, notes).start(0);
       voices.push({ channel, instrument, part });
     });
+    if (data.backing && data.backing.length) buildBacking(data.backing);
 
     for (const moment of timemap) {
       transportIds.push(Tone.Transport.schedule(time => {
@@ -153,7 +172,7 @@ const Player = (() => {
     }
     Tone.Transport.stop();
     Tone.Draw.cancel(0); // drop screen updates queued ahead of the audio
-    voices.forEach(v => v.instrument.releaseAll?.());
+    voices.concat(backing ? [backing] : []).forEach(v => v.instrument.releaseAll?.());
     clearHighlights();
     onStateChange(false);
   }
@@ -179,12 +198,18 @@ const Player = (() => {
         v.channel.volume.value = s.volume;
       }
     },
+    setBacking: on => {
+      backingOn = on;
+      if (backing) backing.channel.mute = !on;
+    },
+    hasBacking: () => Boolean(data && data.backing && data.backing.length),
     voiceState,
     onChange: fn => { onStateChange = fn; },
     // For tests and debugging.
     debug: () => ({
       voices: voices.length,
       notes: voices.map(v => v.part.length),
+      backingChords: backing ? backing.part.length : 0,
       moments: timemap.length,
       sound: pianoFailed ? "synth (piano failed)" : sound,
       state: Tone.Transport.state,
