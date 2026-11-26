@@ -1,0 +1,24 @@
+{
+  "id": "06-canon-at-the-fifth-fix",
+  "order": 6,
+  "level": 2,
+  "type": "fix",
+  "title": "Canon at the fifth: one wrong note",
+  "intro": "A two-voice canon: the second voice enters one bar later, a fifth higher. One note is wrong. Find it and fix it.",
+  "source": "Written for Canon Workbench as a practice piece.",
+  "settings": {
+    "time_signature": "4/4",
+    "key": "D",
+    "voices": 2,
+    "delay_bars": 1,
+    "delay_beats": 0,
+    "interval": "P5"
+  },
+  "melody": "F#4/2 D4/4 E4/4 | F#4/2 A4/2 | F#4/2 D4/4 E4/4 | D4/1",
+  "solution": "F#4/2 D4/4 E4/4 | F#4/2 A4/2 | E4/2 D4/4 E4/4 | D4/1",
+  "hints": [
+    "Remember that every note you change also changes the second voice, a fifth higher, one bar later.",
+    "The errors are in bars 3 and 4: a wrong note clashes once when the leader sings it, and again a bar later when the follower sings it a fifth higher.",
+    "The leader's third bar starts on the wrong note."
+  ]
+}

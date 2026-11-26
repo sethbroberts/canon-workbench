@@ -16,6 +16,8 @@ from flask import Flask, Response, abort, jsonify, render_template, request
 from music.canon import ENDINGS, INTERVAL_CHOICES, CanonSettings, build_canon
 from music.export import (LilyPondError, PieceInfo, install_hint, lilypond_executable, lilypond_source, to_midi,
                           to_pdf, with_metadata)
+from music.harmony import PRESETS, ProgressionError, backing_events, chord_fit
+from music import puzzles
 from music.lyrics import apply_words
 from music.parser import ParseError, check_barlines, parse_melody
 from music.playback import playback_data
@@ -51,7 +53,7 @@ DEFAULTS = {
 
 # Everything that makes up a saved piece.
 PIECE_FIELDS = ["title", "composer", "dedication", "words", "melody", "voices", "delay_bars", "delay_beats",
-                "interval", "repeats", "ending", "time_signature", "key", "tempo", "intentional"]
+                "interval", "repeats", "ending", "time_signature", "key", "tempo", "intentional", "guide"]
 
 
 @app.get("/")
@@ -64,6 +66,7 @@ def index():
         defaults=DEFAULTS,
         can_print=lilypond_executable() is not None,
         install_hint=install_hint(),
+        presets=PRESETS,
     )
 
 
@@ -127,6 +130,7 @@ def api_render():
     warnings = check_barlines(melody, bar) + word_warnings
     if settings.voices > 1 and settings.delay >= melody.duration:
         warnings.append("the entry delay is as long as the melody, so voices never overlap")
+    guide = _guide_info(data.get("guide") or {}, melody, settings, bar, ts, key_text, voices)
 
     findings, texture = check_canon(
         voices, ts, key_text, unison=(settings.interval == "P1"), melody_length=melody.duration
@@ -142,8 +146,9 @@ def api_render():
         ok=True,
         svg=rendered["pages"],
         timemap=rendered["timemap"],
-        playback=playback_data(voices),
+        playback=dict(playback_data(voices), backing=guide.pop("backing", [])),
         findings=found,
+        guide=guide,
         warnings=warnings,
         summary={
             "notes": len(melody.notes()),
@@ -151,6 +156,47 @@ def api_render():
             "delay_beats": float(settings.delay),
         },
     )
+
+
+def _guide_info(guide: dict, melody, settings, bar, ts, key_text, voices) -> dict:
+    """Extra feedback for the round wizard and chain mode.
+
+    guide["parts"] are the phrases (wizard) or segments (chain) the melody was
+    built from. Each should last exactly one part length: the phrase length in
+    the wizard, the entry delay in chain mode.
+    """
+    mode = guide.get("mode", "free")
+    if mode not in ("round", "chain"):
+        return {}
+    if mode == "round":
+        part_length = Fraction(str(guide.get("phrase_bars", 2))) * bar
+    else:
+        part_length = settings.delay
+    parts = []
+    for i, text in enumerate(guide.get("parts") or [], start=1):
+        info = {"index": i, "start": float((i - 1) * part_length), "length": 0.0, "ok": False, "error": ""}
+        try:
+            length = parse_melody(text).duration
+            info["length"] = float(length)
+            info["ok"] = length == part_length
+            if length and length != part_length:
+                info["error"] = (f"{float(length / bar):g} bars long; it should be {float(part_length / bar):g}")
+        except ParseError as err:
+            info["error"] = str(err.issues[0].message)
+        parts.append(info)
+    out = {"mode": mode, "part_length": float(part_length), "parts": parts, "chord_fit": [], "backing": []}
+    progression = guide.get("progression", "")
+    if mode == "round" and progression:
+        from music.rules.texture import Texture
+
+        try:
+            weight = Texture(voices[:1], ts).weight
+            out["chord_fit"] = chord_fit(melody, part_length, progression, key_text, weight)
+            total = max(sum((e.duration for e in v.events), Fraction(0)) for v in voices)
+            out["backing"] = backing_events(part_length, progression, key_text, total)
+        except ProgressionError as exc:
+            out["progression_error"] = str(exc)
+    return out
 
 
 # ---- exports ----
@@ -193,6 +239,37 @@ def api_export(kind: str):
         return jsonify(ok=False, errors=[_error(str(exc))]), 500
     return Response(body, mimetype=mime,
                     headers={"Content-Disposition": f'attachment; filename="{name}.{ext}"'})
+
+
+# ---- puzzles ----
+
+@app.get("/api/puzzles")
+def list_puzzles():
+    return jsonify([{k: p.get(k) for k in ("id", "title", "type", "level")} for p in puzzles.load_all()])
+
+
+@app.get("/api/puzzles/<puzzle_id>")
+def get_puzzle(puzzle_id: str):
+    p = puzzles.find(puzzle_id)
+    if p is None:
+        abort(404)
+    return jsonify(puzzles.public(p))
+
+
+@app.post("/api/puzzles/<puzzle_id>/check")
+def check_puzzle(puzzle_id: str):
+    p = puzzles.find(puzzle_id)
+    if p is None:
+        abort(404)
+    return jsonify(puzzles.grade(p, request.get_json(force=True) or {}))
+
+
+@app.get("/api/puzzles/<puzzle_id>/solution")
+def puzzle_solution(puzzle_id: str):
+    p = puzzles.find(puzzle_id)
+    if p is None:
+        abort(404)
+    return jsonify({k: p[k] for k in ("solution", "answers") if k in p})
 
 
 # ---- saved pieces ----

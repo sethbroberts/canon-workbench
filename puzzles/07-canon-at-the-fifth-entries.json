@@ -1,0 +1,29 @@
+{
+  "id": "07-canon-at-the-fifth-entries",
+  "order": 7,
+  "level": 3,
+  "type": "entries",
+  "title": "Canon at the fifth: find the second voice",
+  "intro": "This melody is a two-voice canon, but not at the unison. Find when the second voice comes in (within the first two bars) and at what interval.",
+  "source": "Written for Canon Workbench as a practice piece.",
+  "settings": {
+    "time_signature": "4/4",
+    "key": "D",
+    "voices": 2,
+    "delay_bars": 1,
+    "delay_beats": 0,
+    "interval": "P1"
+  },
+  "melody": "F#4/2 D4/4 E4/4 | F#4/2 A4/2 | E4/2 D4/4 E4/4 | D4/1",
+  "answers": [
+    {
+      "delay_beats": 4,
+      "interval": "P5"
+    }
+  ],
+  "hints": [
+    "Try the unison first and listen: where does it go wrong?",
+    "The second voice comes in at the start of a bar.",
+    "The melody uses D, E, F#, A. Which transposition keeps those notes in D major and sounds good above them?"
+  ]
+}

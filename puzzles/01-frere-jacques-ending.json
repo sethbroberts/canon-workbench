@@ -1,0 +1,31 @@
+{
+  "id": "01-frere-jacques-ending",
+  "order": 1,
+  "level": 1,
+  "type": "complete",
+  "title": "Frère Jacques: the last phrase",
+  "intro": "The four phrases of Frère Jacques are sung at once, each voice two bars behind the last. The last phrase (\"din, dan, don!\") is missing. Write two bars that fit under all the others.",
+  "source": "Traditional French round, 18th century.",
+  "settings": {
+    "time_signature": "4/4",
+    "key": "F",
+    "voices": 4,
+    "delay_bars": 2,
+    "delay_beats": 0,
+    "interval": "P1"
+  },
+  "phrase_bars": 2,
+  "phrases": [
+    "F4/4 G4 A4 F4 | F4 G4 A4 F4",
+    "A4/4 Bb4 C5/2 | A4/4 Bb4 C5/2",
+    "C5/8 D5 C5 Bb4 A4/4 F4 | C5/8 D5 C5 Bb4 A4/4 F4",
+    null
+  ],
+  "words": "Frè -- re Jac -- ques, frè -- re Jac -- ques, dor -- mez vous? dor -- mez vous? Son -- nez les ma -- ti -- nes, son -- nez les ma -- ti -- nes, din, dan, don! din, dan, don!",
+  "solution": "F4/4 C4 F4/2 | F4/4 C4 F4/2",
+  "hints": [
+    "The whole round sits on one chord: F major (F, A, C). Notes on beats 1 and 3 should come from it.",
+    "This is the lowest phrase, like a bell. Big, slow notes work well.",
+    "Try leaping between F4 and C4, the bottom of the chord."
+  ]
+}

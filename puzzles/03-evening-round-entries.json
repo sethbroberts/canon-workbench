@@ -1,0 +1,29 @@
+{
+  "id": "03-evening-round-entries",
+  "order": 3,
+  "level": 1,
+  "type": "entries",
+  "title": "Evening Round: when does the next voice come in?",
+  "intro": "This melody is a round for three voices. Find how long each voice waits before coming in. Set 'Entry every' and press Check.",
+  "source": "Written for Canon Workbench as a practice piece.",
+  "settings": {
+    "time_signature": "4/4",
+    "key": "F",
+    "voices": 3,
+    "delay_bars": 1,
+    "delay_beats": 0,
+    "interval": "P1"
+  },
+  "melody": "A4/2 G4/2 | F4/1\nC5/4 Bb4/4 C5/2 | C5/4 Bb4/4 A4/2\nF4/4 F4/4 E4/2 | A4/4 G4/8 F4/8 F4/2",
+  "answers": [
+    {
+      "delay_beats": 8,
+      "interval": "P1"
+    }
+  ],
+  "hints": [
+    "Rounds usually bring voices in at the start of a phrase.",
+    "Look for where the melody changes character: long notes, then quarter notes, then movement.",
+    "Each phrase is the same length. How many bars is the first one?"
+  ]
+}
