@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>Canon Workbench</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -65,11 +66,28 @@
     </section>
 
     <section class="score">
+      <div class="transport">
+        <button id="play" type="button" title="Play / stop (space bar)">&#9654; Play</button>
+        <label class="inline">Tempo
+          <input id="tempo" type="range" min="40" max="200" value="96">
+          <span id="tempo-value">96</span>
+        </label>
+        <label class="inline"><input id="loop" type="checkbox"> Loop</label>
+        <label class="inline">Sound
+          <select id="sound">
+            <option value="piano">piano</option>
+            <option value="synth">soft synth</option>
+          </select>
+        </label>
+      </div>
+      <div id="mixer"></div>
       <div id="status"></div>
       <div id="score"></div>
     </section>
   </main>
 
+  <script src="https://unpkg.com/tone@15.1.22/build/Tone.js"></script>
+  <script src="{{ url_for('static', filename='player.js') }}"></script>
   <script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

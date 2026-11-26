@@ -70,5 +70,39 @@ code { background: #efece5; padding: 1px 4px; border-radius: 3px; }
   overflow-x: auto;
 }
 #status { color: var(--quiet); font-size: 13px; margin-bottom: 8px; }
+
+/* Player */
+.transport {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 10px;
+}
+label.inline { display: inline-flex; align-items: center; gap: 6px; font-weight: 500; margin: 0; }
+#tempo-value { min-width: 2.5em; color: var(--quiet); font-variant-numeric: tabular-nums; }
+button {
+  font: inherit;
+  padding: 5px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+}
+#play { min-width: 6.5em; font-weight: 600; }
+#play.playing { background: var(--ink); color: white; border-color: var(--ink); }
+
+#mixer { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-bottom: 10px; font-size: 14px; }
+.voice-strip { display: inline-flex; align-items: center; gap: 6px; }
+.voice-strip .name { font-weight: 600; min-width: 1.2em; }
+.voice-strip button { padding: 2px 8px; font-size: 13px; }
+.voice-strip button.on { background: var(--ink); color: white; border-color: var(--ink); }
+.voice-strip input[type="range"] { width: 70px; }
+.voice-strip select { font: inherit; font-size: 13px; }
+
+/* Notes sounding right now */
+#score g.note.playing, #score g.note.playing * { fill: #c2410c; stroke: #c2410c; }
 #score svg { width: 100%; height: auto; display: block; }
 #score.stale { opacity: 0.45; }

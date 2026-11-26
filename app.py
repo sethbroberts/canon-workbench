@@ -11,7 +11,8 @@ from flask import Flask, jsonify, render_template, request
 
 from music.canon import ENDINGS, INTERVAL_CHOICES, CanonSettings, build_canon
 from music.parser import ParseError, check_barlines, parse_melody
-from music.render import build_score, measure_length, render_svg, to_musicxml
+from music.playback import playback_data
+from music.render import build_score, measure_length, render_score, to_musicxml
 
 app = Flask(__name__)
 
@@ -79,7 +80,7 @@ def api_render():
         settings, bar, ts, key_text = _settings_from(data)
         voices = build_canon(melody, settings)
         xml = to_musicxml(build_score(voices, ts, key_text))
-        pages = render_svg(xml, width=int(data.get("width", 2100)))
+        rendered = render_score(xml, width=int(data.get("width", 2100)))
     except Exception as exc:  # show settings problems in the page, not as a crash
         return jsonify(ok=False, errors=[{"line": 0, "index": 0, "token": "", "message": str(exc)}])
 
@@ -89,7 +90,9 @@ def api_render():
 
     return jsonify(
         ok=True,
-        svg=pages,
+        svg=rendered["pages"],
+        timemap=rendered["timemap"],
+        playback=playback_data(voices),
         warnings=warnings,
         summary={
             "notes": len(melody.notes()),

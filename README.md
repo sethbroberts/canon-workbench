@@ -19,6 +19,13 @@ python app.py
 
 Then open http://127.0.0.1:5000 in your browser. The score updates as you type.
 
+Press **Play** (or the space bar) to hear all voices. Each voice has mute (M),
+solo (S), volume, and an octave setting, so you can hear the round the way a
+mixed group would sing it. With **Loop** on, you can keep editing while it
+plays; the changes are picked up on the fly. Playback needs an internet
+connection the first time (it loads the Tone.js audio library and piano
+samples); if the piano samples can't load, it falls back to a synth sound.
+
 Run the tests with:
 
 ```bash
@@ -50,8 +57,12 @@ music/
   model.py        Pitch, Note, Rest, Melody
   parser.py       text syntax -> Melody
   canon.py        Melody + settings -> voices
-  render.py       voices -> music21 score -> MusicXML -> SVG (Verovio)
-static/           front-end JavaScript and CSS
+  render.py       voices -> music21 score -> MusicXML -> SVG (Verovio) + timemap
+  playback.py     voices -> note events for the browser player
+static/
+  app.js          editor, settings, player controls
+  player.js       Tone.js playback and note highlighting
+  style.css
 templates/        HTML page
 tests/            pytest tests
 puzzles/          (coming) puzzle canons to solve

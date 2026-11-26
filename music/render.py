@@ -93,6 +93,16 @@ def to_musicxml(score: stream.Score) -> str:
 
 def render_svg(musicxml: str, width: int = 2100, scale: int = 40) -> list[str]:
     """Render MusicXML to one SVG string per page."""
+    return render_score(musicxml, width, scale)["pages"]
+
+
+def render_score(musicxml: str, width: int = 2100, scale: int = 40) -> dict:
+    """Render MusicXML to SVG pages plus a timemap for highlighting notes.
+
+    The timemap is a list of moments: {"q": quarter-note position,
+    "on": [ids of notes that start], "off": [ids of notes that end]}.
+    The ids match the <g class="note"> elements in the SVG.
+    """
     # Point Verovio at its bundled fonts explicitly: it can't find them on its own
     # when called from a web server's worker thread.
     tk = verovio.toolkit(False)
@@ -110,4 +120,9 @@ def render_svg(musicxml: str, width: int = 2100, scale: int = 40) -> list[str]:
     )
     if not tk.loadData(musicxml):
         raise RuntimeError("Verovio could not read the MusicXML")
-    return [tk.renderToSVG(page) for page in range(1, tk.getPageCount() + 1)]
+    pages = [tk.renderToSVG(page) for page in range(1, tk.getPageCount() + 1)]
+    timemap = [
+        {"q": entry["qstamp"], "on": entry.get("on", []), "off": entry.get("off", [])}
+        for entry in tk.renderToTimemap({"includeMeasures": False, "includeRests": False})
+    ]
+    return {"pages": pages, "timemap": timemap}
