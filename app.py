@@ -12,7 +12,8 @@ from flask import Flask, jsonify, render_template, request
 from music.canon import ENDINGS, INTERVAL_CHOICES, CanonSettings, build_canon
 from music.parser import ParseError, check_barlines, parse_melody
 from music.playback import playback_data
-from music.render import build_score, measure_length, render_score, to_musicxml
+from music.render import build_score, measure_length, note_ids, render_score, to_musicxml
+from music.rules import check_canon
 
 app = Flask(__name__)
 
@@ -88,11 +89,22 @@ def api_render():
     if settings.voices > 1 and settings.delay >= melody.duration:
         warnings.append("the entry delay is as long as the melody, so voices never overlap")
 
+    findings, texture = check_canon(
+        voices, ts, key_text, unison=(settings.interval == "P1"), melody_length=melody.duration
+    )
+    ids = note_ids(rendered)
+    found = []
+    for f in findings:
+        d = f.to_dict(texture)
+        d["note_ids"] = [ids[k] for v, t in f.notes if (k := (v, float(t))) in ids]
+        found.append(d)
+
     return jsonify(
         ok=True,
         svg=rendered["pages"],
         timemap=rendered["timemap"],
         playback=playback_data(voices),
+        findings=found,
         warnings=warnings,
         summary={
             "notes": len(melody.notes()),

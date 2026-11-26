@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import xml.etree.ElementTree as ET
 from fractions import Fraction
 
 import verovio
@@ -14,6 +15,7 @@ from .canon import Voice
 from .model import Note, Pitch
 
 VEROVIO_DATA = os.path.join(os.path.dirname(verovio.__file__), "data")
+SVG_G = "{http://www.w3.org/2000/svg}g"
 LOW_FOR_TREBLE = 55  # below G3: switch to the "tenor" treble clef (sounds an octave lower)
 
 
@@ -116,6 +118,7 @@ def render_score(musicxml: str, width: int = 2100, scale: int = 40) -> dict:
             "footer": "none",
             "breaks": "auto",
             "svgViewBox": True,
+            "svgAdditionalAttribute": ["staff@n"],  # label staves with their voice number
         }
     )
     if not tk.loadData(musicxml):
@@ -126,3 +129,21 @@ def render_score(musicxml: str, width: int = 2100, scale: int = 40) -> dict:
         for entry in tk.renderToTimemap({"includeMeasures": False, "includeRests": False})
     ]
     return {"pages": pages, "timemap": timemap}
+
+
+def note_ids(rendered: dict) -> dict[tuple[int, float], str]:
+    """Map (voice number, note start in quarter notes) -> the note's id in the SVG."""
+    staff_of: dict[str, int] = {}
+    for page in rendered["pages"]:
+        for staff in ET.fromstring(page).iter(SVG_G):
+            if staff.get("class") == "staff" and staff.get("data-n"):
+                n = int(staff.get("data-n"))
+                for g in staff.iter(SVG_G):
+                    if (g.get("class") or "").split()[:1] == ["note"]:
+                        staff_of[g.get("id")] = n
+    out: dict[tuple[int, float], str] = {}
+    for moment in rendered["timemap"]:
+        for nid in moment["on"]:
+            if nid in staff_of:
+                out[(staff_of[nid], float(moment["q"]))] = nid
+    return out
